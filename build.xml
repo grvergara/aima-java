@@ -1,62 +1,72 @@
+<project name="aima-java" default="all" basedir=".">
+    <!-- Define properties -->
+    <property name="src.dir" value="src"/>
+    <property name="build.dir" value="build"/>
+    <property name="dist.dir" value="dist"/>
+    <property name="doc.dir" value="doc"/>
+    <property name="lib.dir" value="lib"/>
+    <property name="test.dir" value="${src.dir}/aima/test"/>
+    
+    <!-- Define classpaths -->
+    <path id="classpath">
+        <fileset dir="${lib.dir}" includes="**/*.jar"/>
+        <pathelement location="${build.dir}"/>
+    </path>
 
-<project name="aima" default="clean-all">
+    <!-- Clean target -->
+    <target name="clean" description="Clean output directories">
+        <delete dir="${build.dir}"/>
+        <delete dir="${dist.dir}"/>
+        <delete dir="${doc.dir}"/>
+    </target>
 
-	<property name="build" value="build" />
-	<property name="src" value="src" />
-	<property name="doc" value="doc" />
-	<property name="lib" value="/home/ravi/projects/java/javalibs" />
+    <!-- Init target -->
+    <target name="init" depends="clean">
+        <mkdir dir="${build.dir}"/>
+        <mkdir dir="${dist.dir}"/>
+        <mkdir dir="${doc.dir}"/>
+    </target>
 
+    <!-- Compile target -->
+    <target name="compile" depends="init" description="Compile source code">
+        <javac srcdir="${src.dir}"
+               destdir="${build.dir}"
+               classpathref="classpath"
+               debug="true"
+               includeantruntime="false">
+        </javac>
+    </target>
 
-	<path id="build.classpath">
-		<pathelement path="${lib}/junit3.8.2/junit.jar" />
-		<pathelement path="${build}" />
-	</path>
+    <!-- Create JAR -->
+    <target name="jar" depends="compile" description="Create JAR file">
+        <jar destfile="${dist.dir}/aima-java.jar" basedir="${build.dir}">
+            <manifest>
+                <attribute name="Main-Class" value="aima.Main"/>
+            </manifest>
+        </jar>
+    </target>
 
+    <!-- Generate JavaDoc -->
+    <target name="javadoc" depends="compile" description="Generate JavaDoc">
+        <javadoc sourcepath="${src.dir}"
+                 destdir="${doc.dir}/api"
+                 packagenames="aima.*"
+                 classpathref="classpath"
+                 author="true"
+                 version="true"
+                 windowtitle="AIMA Java API">
+        </javadoc>
+    </target>
 
-	<target name="clean">
-		<delete dir="build" />
-		<delete dir="doc" />
+    <!-- Run Tests -->
+    <target name="test" depends="compile" description="Run unit tests">
+        <junit printsummary="yes" haltonfailure="true">
+            <formatter type="plain" usefile="false"/>
+            <test name="aima.test.AllAimaTests"/>
+            <classpath refid="classpath"/>
+        </junit>
+    </target>
 
-	</target>
-
-
-
-	<target name="makedirs" depends="clean">
-		<mkdir dir="${build}" />
-		<mkdir dir="${doc}" />
-		<mkdir dir="${doc}/javadoc" />
-
-	</target>
-
-
-	<target name="compile-all" depends="makedirs">
-		<javac srcdir="${src}" destdir="${build}">
-		</javac>
-	</target>
-
-
-
-	<target name="test-all" depends="compile-all">
-		<junit haltonfailure="true">
-			<formatter type="plain" usefile="no" />
-			<test name="aima.test.AllAimaTests" />
-			<classpath refid="build.classpath" />
-		</junit>
-	</target>
-
-
-
-	<target name="makedocs" depends="compile-all">
-		<javadoc destdir="${doc}/javadoc" packagenames="aima.*" sourcepath="${src}" />
-
-	</target>
-
-
-
-	<target name="clean-all" depends="makedocs">
-	</target>
-
-	<target name="all" depends="makedocs,test-all">
-	</target>
-
+    <!-- Main target -->
+    <target name="all" depends="clean,compile,jar,test,javadoc" description="Clean, build, test, and document"/>
 </project>
